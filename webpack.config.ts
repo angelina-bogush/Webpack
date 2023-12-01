@@ -36,7 +36,6 @@ export default (env: IEnvVariables) => {
       rules: [
         {
           test: /\.tsx?$/,
-          // use: "ts-loader",
           exclude: /node_modules/,
           use:[
             {
