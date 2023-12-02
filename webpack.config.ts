@@ -5,8 +5,8 @@ import type { Configuration as DevServerConfiguration } from "webpack-dev-server
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import TerserPlugin from "terser-webpack-plugin";
 import autoprefixer from "autoprefixer";
-import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin'
-import ReactRefreshTypeScript from 'react-refresh-typescript'
+import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
+import ReactRefreshTypeScript from "react-refresh-typescript";
 
 type Mode = "production" | "development";
 interface IEnvVariables {
@@ -30,38 +30,37 @@ export default (env: IEnvVariables) => {
       }),
       new webpack.ProgressPlugin(),
       new MiniCssExtractPlugin(),
-      isDev && new ReactRefreshWebpackPlugin()
-    ],
+      isDev && new ReactRefreshWebpackPlugin(),
+    ].filter(Boolean),
     module: {
       rules: [
         {
           test: /\.tsx?$/,
           exclude: /node_modules/,
-          use:[
+          use: [
             {
               loader: "ts-loader",
-              options:{
+              options: {
                 getCustomTransformers: () => ({
                   before: [isDev && ReactRefreshTypeScript()].filter(Boolean),
                 }),
-              }
-            }
-          ]
+              },
+            },
+          ],
         },
         {
-          test: /\.js$/,
+          test: /\.jsx?$/,
           exclude: /node_modules/,
           use: {
-            loader: 'babel-loader',
+            loader: "babel-loader",
             options: {
-              plugins: [isDev && require.resolve('react-refresh/babel')].filter(Boolean),
-              presets: [
-                '@babel/preset-env',
-                '@babel/preset-react',
-              ],
+              plugins: [isDev && require.resolve("react-refresh/babel")].filter(
+                Boolean
+              ),
+              presets: ["@babel/preset-env", "@babel/preset-react"],
             },
           },
-        },  
+        },
         {
           test: /\.s[ac]ss$/i,
           use: [
@@ -85,6 +84,10 @@ export default (env: IEnvVariables) => {
           type: "asset/resource",
         },
         {
+          test: /\.(woff|woff2|eot|ttf|otf)$/i,
+          type: "asset/resource",
+        },
+        {
           test: /\.svg$/,
           use: [
             {
@@ -104,14 +107,22 @@ export default (env: IEnvVariables) => {
       },
     },
     devtool: "inline-source-map",
-    devServer: {
-      port: env.port ?? 8080,
-      open: true,
-      hot: true
-    },
+    devServer: isDev
+      ? {
+          port: env.port ?? 8080,
+          open: true,
+          hot: true,
+        }
+      : undefined,
     optimization: {
-      minimize: true,
-      minimizer: [new TerserPlugin()],
+      minimize: !isDev,
+      minimizer: !isDev ? [new TerserPlugin()] : undefined,
+      splitChunks: !isDev
+        ? {
+            chunks: "all",
+            name: false,
+          }
+        : undefined,
     },
   };
   return config;
